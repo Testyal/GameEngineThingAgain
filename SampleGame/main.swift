@@ -13,4 +13,5 @@ import Engine
 
 let fuck = Engine()
 
-fuck.doSetupGame()
+fuck.doStartGame(initialWorld: World(0))
+while true {}
