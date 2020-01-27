@@ -55,7 +55,12 @@ class DefaultLogicSystem: LogicSystem {
         let newActorPostion = clamp(world.actorPosition + dx, min: 0, max: 63)
         let newWorld = World(newActorPostion)
         
-        return (renderables: [CharacterRenderObject("o", at: newActorPostion)], playables: [], world: newWorld)
+        let rs: [Renderable] = [BackgroundPatternRenderObject(". - "),
+                                TextRenderObject(" background ", at: 35),
+                                TextRenderObject(" o ", at: newActorPostion),
+                                TextRenderObject(" foreground ", at: 15)]
+        
+        return (renderables: rs, playables: [], world: newWorld)
     }
     
 }
@@ -98,13 +103,9 @@ public class Engine {
             timer.setEventHandler { [unowned self] in
                 self.world = self.doLoop(0.5, self.world)
             }
-            timer.schedule(deadline: .now(), repeating: .milliseconds(10), leeway: .milliseconds(1))
+            timer.schedule(deadline: .now(), repeating: .milliseconds(20), leeway: .milliseconds(1))
 
             //timer.suspend()
-        }
-        
-        deinit {
-            print("gameloop deinited")
         }
         
         func doBeginLoop() {
@@ -132,10 +133,6 @@ public class Engine {
         renderSystem = ConsoleRenderSystem()
         audioSystem = DefaultAudioSystem()
         gameLoop = nil
-    }
-    
-    deinit {
-        print("engine deinited")
     }
     
     func loopInternal(d: Double, w: World) -> World {
