@@ -10,31 +10,89 @@ import Foundation
 
 // RENDER /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typealias RenderInstruction = (ConsoleRenderer, [Character]) -> [Character]
+
+
 protocol Renderable {
-    func show() -> String
+    func render() -> [RenderInstruction]
 }
 
-struct TextRenderObject: Renderable {
+class TextRenderObject: Renderable {
     
-    let text: String
+    let value: String
     
-    func show() -> String {
-        return text
+    init(_ v: String) {
+        self.value = v
+    }
+    
+    func render() -> [RenderInstruction] {
+        return [{(r, s) in r.writeLine(text: self.value, onto: s)}]
+    }
+    
+}
+
+
+class CharacterRenderObject: Renderable {
+    
+    let value: Character
+    let position: Int
+    
+    init(_ c: Character, at x: Int) {
+        self.value = c
+        self.position = x
+    }
+    
+    func render() -> [RenderInstruction] {
+        return [{(r, s) in r.putCharacter(self.value, at: self.position, onto: s)}]
+    }
+    
+}
+
+
+class ConsoleRenderer {
+    
+    func writeLine(text t: String, onto s: [Character]) -> [Character] {
+        return s + "\n" + t
+    }
+    
+    func clearScreen(withCharacter c: Character) {
+        print(String(repeating: c, count: 64))
+    }
+    
+    func putCharacter(_ c: Character, at x: Int, onto s: [Character]) -> [Character] {
+        assert(0 <= x && x < 64)
+        var os = s
+        os[x] = c
+        return os
     }
     
 }
 
 
 protocol RenderSystem {
-    func doRender(objects renderableObjects: [Renderable])
+    func doRender(objects oo: [Renderable])
 }
 
-class DefaultRenderSystem: RenderSystem {
+class ConsoleRenderSystem: RenderSystem {
     
-    func doRender(objects ros: [Renderable]) {
-        ros.forEach { ro in
-            print(ro.show())
+    let renderer = ConsoleRenderer()
+    
+    func render(instructions ii: [RenderInstruction]) -> [Character] {
+        let blank = [Character](repeating: " ", count: 64)
+        return ii.reduce(blank) { (v,f) -> [Character] in
+            return f(renderer,v)
         }
+    }
+    
+    func convertToRenderCode(objects oo: [Renderable]) -> [RenderInstruction] {
+        return oo.flatMap { o in
+            o.render()
+        }
+    }
+    
+    func doRender(objects oo: [Renderable]) {
+        let output = render(instructions: convertToRenderCode(objects: oo))
+        print(String(output))
     }
     
 }

@@ -52,13 +52,10 @@ class DefaultLogicSystem: LogicSystem {
             return x
         }
         
-        let newActorPostion = clamp(world.actorPosition + dx, min: 0, max: 64)
+        let newActorPostion = clamp(world.actorPosition + dx, min: 0, max: 63)
         let newWorld = World(newActorPostion)
-        let renderWorld = String((0...64).map { n in
-            return n == newWorld.actorPosition ? "o" : "."
-        })
         
-        return (renderables: [TextRenderObject(text: renderWorld)], playables: [], world: newWorld)
+        return (renderables: [CharacterRenderObject("o", at: newActorPostion)], playables: [], world: newWorld)
     }
     
 }
@@ -132,7 +129,7 @@ public class Engine {
     public init() {
         inputSystem = RandomInputSystem()
         logicSystem = DefaultLogicSystem()
-        renderSystem = DefaultRenderSystem()
+        renderSystem = ConsoleRenderSystem()
         audioSystem = DefaultAudioSystem()
         gameLoop = nil
     }
