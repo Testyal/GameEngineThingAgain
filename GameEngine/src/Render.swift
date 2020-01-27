@@ -49,14 +49,29 @@ class CharacterRenderObject: Renderable {
 }
 
 
+class BackgroundRenderObject: Renderable {
+    
+    let value: Character
+    
+    init(_ c: Character) {
+        self.value = c
+    }
+    
+    func render() -> [RenderInstruction] {
+        return [{(r, s) in r.clearScreen(withCharacter: self.value, onto: s)}]
+    }
+    
+}
+
+
 class ConsoleRenderer {
     
     func writeLine(text t: String, onto s: [Character]) -> [Character] {
         return s + "\n" + t
     }
     
-    func clearScreen(withCharacter c: Character) {
-        print(String(repeating: c, count: 64))
+    func clearScreen(withCharacter c: Character, onto s: [Character]) -> [Character] {
+        return [Character](repeating: c, count: 64)
     }
     
     func putCharacter(_ c: Character, at x: Int, onto s: [Character]) -> [Character] {
