@@ -17,7 +17,7 @@ protocol Renderable {
     func render() -> [RenderInstruction]
 }
 
-class TextRenderObject: Renderable {
+class TextLineRenderObject: Renderable {
     
     let value: String
     
@@ -27,6 +27,23 @@ class TextRenderObject: Renderable {
     
     func render() -> [RenderInstruction] {
         return [{(r, s) in r.writeLine(text: self.value, onto: s)}]
+    }
+    
+}
+
+
+class TextRenderObject: Renderable {
+    
+    let value: String
+    let position: Int
+    
+    init(_ v: String, at x: Int) {
+        self.value = v
+        self.position = x
+    }
+    
+    func render() -> [RenderInstruction] {
+        return [{(r, s) in r.write(text: self.value, at: self.position, onto: s)}]
     }
     
 }
@@ -64,7 +81,33 @@ class BackgroundRenderObject: Renderable {
 }
 
 
+class BackgroundPatternRenderObject: Renderable {
+    
+    let pattern: String
+    
+    init(_ p: String) {
+        self.pattern = p
+    }
+    
+    func render() -> [RenderInstruction] {
+        return [{(r, s) in r.clearScreen(withPattern: self.pattern, onto: s)}]
+    }
+    
+}
+
+
 class ConsoleRenderer {
+    
+    func write(text t: String, at x: Int, onto s: [Character]) -> [Character] {
+        let cc: [Character] = Array(t)
+        var s2 = s
+        
+        for i in 0..<cc.count {
+            s2[x + i] = cc[i]
+        }
+        
+        return s2
+    }
     
     func writeLine(text t: String, onto s: [Character]) -> [Character] {
         return s + "\n" + t
@@ -72,6 +115,11 @@ class ConsoleRenderer {
     
     func clearScreen(withCharacter c: Character, onto s: [Character]) -> [Character] {
         return [Character](repeating: c, count: 64)
+    }
+    
+    func clearScreen(withPattern p: String, onto s: [Character]) -> [Character] {
+        let len = p.count
+        return Array(String(repeating: p, count: max(64/len + 1, 1)).prefix(64))
     }
     
     func putCharacter(_ c: Character, at x: Int, onto s: [Character]) -> [Character] {
