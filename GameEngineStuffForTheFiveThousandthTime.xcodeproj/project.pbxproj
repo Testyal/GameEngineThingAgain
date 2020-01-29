@@ -134,6 +134,7 @@
 		281BDA9123D86AB0007E25E0 /* SampleGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleGame.swift; sourceTree = "<group>"; };
 		281BDA9723D86EA5007E25E0 /* SampleGame */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SampleGame; sourceTree = BUILT_PRODUCTS_DIR; };
 		281BDA9923D86EA5007E25E0 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		2821F73923E1C07A002135AF /* docs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = docs; sourceTree = "<group>"; };
 		2824B91123D08CA200C861C4 /* GameEngineStuffForTheFiveThousandthTime.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GameEngineStuffForTheFiveThousandthTime.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2824B91423D08CA200C861C4 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2824B91623D08CA200C861C4 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -302,6 +303,7 @@
 		2824B91323D08CA200C861C4 /* GameEngine */ = {
 			isa = PBXGroup;
 			children = (
+				2821F73923E1C07A002135AF /* docs */,
 				281BDA9023D86A9C007E25E0 /* app */,
 				2824B94223D08FAD00C861C4 /* src */,
 				2824B91423D08CA200C861C4 /* AppDelegate.swift */,
