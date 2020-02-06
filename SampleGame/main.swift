@@ -11,7 +11,21 @@ import Engine
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-let engine = Engine()
+let inputLoop = InputLoop()
+let otherLoop = DispatchSource.makeTimerSource(queue: .global(qos: .default))
 
-engine.doStartGame(initialWorld: World(30))
+otherLoop.setEventHandler {
+    print("hey")
+    inputLoop.requestInputBuffer { (input) in
+        if !input.isEmpty {
+            print(input)
+            print("there are \(input.count) values in the buffer")
+        }
+    }
+}
+otherLoop.schedule(deadline: .now(), repeating: .milliseconds(1000), leeway: .milliseconds(1))
+
+inputLoop.doBeginLoop()
+otherLoop.resume()
+
 while true {}
