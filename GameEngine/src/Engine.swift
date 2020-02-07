@@ -28,19 +28,21 @@ public class World {
 
 
 protocol LogicSystem {
-    func update(dt deltaTime: Double, input: Input?, world frameData: World) -> (renderables: [Renderable], playables: [Playable], world: World)
+    func update(dt deltaTime: Double, input: [Input], world frameData: World) -> (renderables: [Renderable], playables: [Playable], world: World)
 }
 
 class DefaultLogicSystem: LogicSystem {
     
-    func update(dt deltaTime: Double, input: Input?, world: World) -> (renderables: [Renderable], playables: [Playable], world: World) {
-        let dx: Int;
-        
+    func deltaPostion(from input: Input) -> Int {
         switch input {
-        case .some(.KEY_RIGHT): dx = +1
-        case .some(.KEY_LEFT): dx = -1
-        default: dx = 0
+        case .KEY_LEFT: return -1
+        case .KEY_RIGHT: return +1
+        default: return 0
         }
+    }
+    
+    func update(dt deltaTime: Double, input: [Input], world: World) -> (renderables: [Renderable], playables: [Playable], world: World) {
+        let dx = input.reduce(0) { $0 + deltaPostion(from: $1) }
         
         func clamp(_ x: Int, min: Int, max: Int) -> Int {
             if x < min {
@@ -55,10 +57,9 @@ class DefaultLogicSystem: LogicSystem {
         let newActorPostion = clamp(world.actorPosition + dx, min: 0, max: 63)
         let newWorld = World(newActorPostion)
         
-        let rs: [Renderable] = [BackgroundPatternRenderObject(". - "),
-                                TextRenderObject(" background ", at: 35),
-                                TextRenderObject(" o ", at: newActorPostion),
-                                TextRenderObject(" foreground ", at: 15)]
+        let rs: [Renderable] = [BackgroundRenderObject("▪️"),
+                                TextRenderObject("😳", at: newActorPostion),
+                                TextLineRenderObject("\(input.description): dx = \(dx)")]
         
         return (renderables: rs, playables: [], world: newWorld)
     }
@@ -103,7 +104,7 @@ public class Engine {
             timer.setEventHandler { [unowned self] in
                 self.world = self.doLoop(0.5, self.world)
             }
-            timer.schedule(deadline: .now(), repeating: .milliseconds(20), leeway: .milliseconds(1))
+            timer.schedule(deadline: .now(), repeating: .milliseconds(500), leeway: .milliseconds(1))
 
             //timer.suspend()
         }
@@ -128,7 +129,7 @@ public class Engine {
     var gameLoop: GameLoop?
     
     public init() {
-        inputSystem = RandomInputSystem()
+        inputSystem = InputSystem()
         logicSystem = DefaultLogicSystem()
         renderSystem = ConsoleRenderSystem()
         audioSystem = DefaultAudioSystem()
@@ -136,21 +137,28 @@ public class Engine {
     }
     
     func loopInternal(d: Double, w: World) -> World {
-        let input = inputSystem.askInput()
+        let start = DispatchTime.now()
         
-        let outputs = logicSystem.update(dt: d, input: input, world: w)
+        let inputs = inputSystem.requestInputBuffer()
+        
+        //print(inputs)
+        let outputs = logicSystem.update(dt: d, input: inputs, world: w)
         let renderables = outputs.renderables
         let sounds = outputs.playables
         let world = outputs.world
         
         renderSystem.doRender(objects: renderables)
         audioSystem.doPlaySounds(sounds: sounds)
-    
+        
+        let end = DispatchTime.now()
+        //print("loop finished in \((end.uptimeNanoseconds - start.uptimeNanoseconds)/1000) μs")
+        
         return world
     }
     
     public func doStartGame(initialWorld w: World) {
         gameLoop = GameLoop.doScheduleLoop(initialWorld: w, loop: loopInternal)
+        inputSystem.startInputLoop()
     }
     
 }
