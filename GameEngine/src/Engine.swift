@@ -19,9 +19,16 @@ import Dispatch
 public class World {
     
     let actorPosition: Int
+    let actorFace: String
     
     public init(_ x: Int) {
+        self.actorPosition = 0
+        self.actorFace = "😐"
+    }
+    
+    public init(_ x: Int, face f: String) {
         self.actorPosition = x
+        self.actorFace = f
     }
     
 }
@@ -42,7 +49,10 @@ class DefaultLogicSystem: LogicSystem {
     }
     
     func update(dt deltaTime: Double, input: [Input], world: World) -> (renderables: [Renderable], playables: [Playable], world: World) {
-        let dx = input.reduce(0) { $0 + deltaPostion(from: $1) }
+        let arrowKeys = input.filter { [Input.KEY_LEFT, Input.KEY_RIGHT].contains($0) }
+        let faceKeys = input.filter { [Input.KEY_T, Input.KEY_F, Input.KEY_R].contains($0) }
+        
+        let dx = arrowKeys.reduce(0) { $0 + deltaPostion(from: $1) }
         
         func clamp(_ x: Int, min: Int, max: Int) -> Int {
             if x < min {
@@ -54,12 +64,20 @@ class DefaultLogicSystem: LogicSystem {
             return x
         }
         
-        let newActorPostion = clamp(world.actorPosition + dx, min: 0, max: 63)
-        let newWorld = World(newActorPostion)
+        let actorFaces = [Input.KEY_T: "🤔", Input.KEY_R: "😡", Input.KEY_F: "😳"]
+        let newActorFace: String
+        if let f = faceKeys.last {
+            newActorFace = actorFaces[f]!
+        } else {
+            newActorFace = world.actorFace
+        }
         
-        let rs: [Renderable] = [BackgroundRenderObject("▪️"),
-                                TextRenderObject("😳", at: newActorPostion),
-                                TextLineRenderObject("\(input.description): dx = \(dx)")]
+        let newActorPostion = clamp(world.actorPosition + dx, min: 0, max: 63)
+        let newWorld = World(newActorPostion, face: newActorFace)
+        
+        let rs: [Renderable] = [BackgroundRenderObject(" "),
+                                TextRenderObject(newActorFace, at: newActorPostion)]
+                         //       TextLineRenderObject("\(input.description): dx = \(dx)")]
         
         return (renderables: rs, playables: [], world: newWorld)
     }
@@ -104,7 +122,7 @@ public class Engine {
             timer.setEventHandler { [unowned self] in
                 self.world = self.doLoop(0.5, self.world)
             }
-            timer.schedule(deadline: .now(), repeating: .milliseconds(500), leeway: .milliseconds(1))
+            timer.schedule(deadline: .now(), repeating: .milliseconds(50), leeway: .milliseconds(1))
 
             //timer.suspend()
         }
@@ -140,18 +158,24 @@ public class Engine {
         let start = DispatchTime.now()
         
         let inputs = inputSystem.requestInputBuffer()
+        let inputTime = DispatchTime.now()
+        print("input retrieval finished in \((inputTime.uptimeNanoseconds - start.uptimeNanoseconds)/1000) μs")
         
         //print(inputs)
         let outputs = logicSystem.update(dt: d, input: inputs, world: w)
         let renderables = outputs.renderables
         let sounds = outputs.playables
         let world = outputs.world
+        let updateTime = DispatchTime.now()
+        print("world update finished in \((updateTime.uptimeNanoseconds - inputTime.uptimeNanoseconds)/1000) μs")
         
         renderSystem.doRender(objects: renderables)
         audioSystem.doPlaySounds(sounds: sounds)
+        let outputTime = DispatchTime.now()
+        print("render and audio work finished in \((outputTime.uptimeNanoseconds - updateTime.uptimeNanoseconds)/1000) μs" )
         
         let end = DispatchTime.now()
-        //print("loop finished in \((end.uptimeNanoseconds - start.uptimeNanoseconds)/1000) μs")
+        print("loop finished in \((end.uptimeNanoseconds - start.uptimeNanoseconds)/1000) μs")
         
         return world
     }

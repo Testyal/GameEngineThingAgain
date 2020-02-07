@@ -11,13 +11,17 @@ import Foundation
 // INPUT //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum Input: CustomStringConvertible {
-    case KEY_A
+    case KEY_F
+    case KEY_R
+    case KEY_T
     case KEY_LEFT
     case KEY_RIGHT
     
     var description: String {
         switch self {
-        case .KEY_A: return "A"
+        case .KEY_F: return "F"
+        case .KEY_R: return "R"
+        case .KEY_T: return "T"
         case .KEY_LEFT: return "⬅️"
         case .KEY_RIGHT: return "➡️"
         }
@@ -42,9 +46,12 @@ class EmptyInputProvider: InputProvider {
 class RandomInputProvider: InputProvider {
     
     func askInput() -> Input? {
-        switch Int.random(in: 0...2) {
+        switch Int.random(in: 0...5) {
         case 1: return .KEY_LEFT
         case 2: return .KEY_RIGHT
+        case 3: return .KEY_F
+        case 4: return .KEY_R
+        case 5: return .KEY_T
         default: return nil
         }
     }
@@ -127,7 +134,7 @@ class InputSystem {
     let inputLoop: InputLoop
     
     init() {
-        inputLoop = InputLoop(inputProvider: RandomInputProvider(), inputFrameTime: .milliseconds(50))
+        inputLoop = InputLoop(inputProvider: RandomInputProvider(), inputFrameTime: .milliseconds(5))
     }
     
     func requestInputBuffer(_ handler: @escaping ([Input]) -> Void) {
