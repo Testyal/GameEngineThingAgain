@@ -14,4 +14,6 @@ import Engine
 let engine = Engine()
 engine.doStartGame(initialWorld: World(0))
 
+
+// Gross hack please fix :(
 while true {}
