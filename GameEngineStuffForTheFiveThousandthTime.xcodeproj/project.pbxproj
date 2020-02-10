@@ -125,6 +125,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2812355923F15DAB00E6D988 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		281BDA6B23D86255007E25E0 /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
 		281BDA7223D86996007E25E0 /* Engine.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Engine.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		281BDA7423D86996007E25E0 /* Engine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
@@ -230,6 +231,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2812355823F15D9200E6D988 /* Render */ = {
+			isa = PBXGroup;
+			children = (
+				282556EB23D9C57A00C0335C /* Render.swift */,
+				2812355923F15DAB00E6D988 /* README.md */,
+			);
+			path = Render;
+			sourceTree = "<group>";
+		};
 		281BDA7323D86996007E25E0 /* Engine */ = {
 			isa = PBXGroup;
 			children = (
@@ -345,7 +355,7 @@
 				2824B94323D08FC600C861C4 /* CountdownTimer.swift */,
 				2824B94923D2002200C861C4 /* Battle.swift */,
 				281BDA6B23D86255007E25E0 /* Engine.swift */,
-				282556EB23D9C57A00C0335C /* Render.swift */,
+				2812355823F15D9200E6D988 /* Render */,
 				282556EE23D9C5FE00C0335C /* Audio.swift */,
 			);
 			path = src;
