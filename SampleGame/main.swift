@@ -12,7 +12,7 @@ import Engine
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 let engine = Engine()
-engine.doStartGame(initialWorld: World(0))
+engine.doStartGame(initialWorld: World(actorPosition: 0, actorFace: "o", frame: 0))
 
 
 // Gross hack please fix :(

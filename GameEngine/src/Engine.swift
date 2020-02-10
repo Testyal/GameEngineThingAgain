@@ -20,15 +20,12 @@ public class World {
     
     let actorPosition: Int
     let actorFace: String
+    let frame: Int
     
-    public init(_ x: Int) {
-        self.actorPosition = 0
-        self.actorFace = "😐"
-    }
-    
-    public init(_ x: Int, face f: String) {
+    public init(actorPosition x: Int, actorFace face: String, frame fr: Int) {
         self.actorPosition = x
-        self.actorFace = f
+        self.actorFace = face
+        self.frame = fr
     }
     
 }
@@ -73,37 +70,18 @@ class DefaultLogicSystem: LogicSystem {
         }
         
         let newActorPostion = clamp(world.actorPosition + dx, min: 0, max: 63)
-        let newWorld = World(newActorPostion, face: newActorFace)
+        let newWorld = World(actorPosition: newActorPostion, actorFace: newActorFace, frame: world.frame + 1)
         
         let rs: [Renderable] = [BackgroundRenderObject("."),
                                 TextRenderObject(newActorFace, at: newActorPostion),
-                                TextLineRenderObject("\(input.description): dx = \(dx)")]
+                                TextLineRenderObject("\(input.description): dx = \(dx)"),
+                                TextLineRenderObject("Frame: \(world.frame + 1)")]
         
         return (renderables: rs, playables: [], world: newWorld)
     }
     
 }
 
-// TIME -- Functionally useless ///////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-typealias FrameTime = Double
-
-protocol TimeSystem {
-    func doWait(for time: FrameTime, callback: @escaping (FrameTime) -> Void)
-}
-
-class DefaultTimeSystem: TimeSystem {
-    
-    func doWait(for time: FrameTime, callback: @escaping (FrameTime) -> Void) {
-        // DispatchQueue.main.asyncAfter(deadline: DispatchTime(uptimeNanoseconds: 1_000_000_000)) {
-        //    callback(time)
-        // }
-        usleep(1_000)
-        callback(time)
-    }
-    
-}
-*/
 // ENGINE /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 public class Engine {
@@ -155,27 +133,38 @@ public class Engine {
     }
     
     func loopInternal(d: Double, w: World) -> World {
+        #if BENCH
         let start = DispatchTime.now()
+        #endif
         
         let inputs = inputSystem.requestInputBuffer()
+        
+        #if BENCH
         let inputTime = DispatchTime.now()
         print("input retrieval finished in \((inputTime.uptimeNanoseconds - start.uptimeNanoseconds)/1000) μs")
+        #endif
         
         //print(inputs)
         let outputs = logicSystem.update(dt: d, input: inputs, world: w)
         let renderables = outputs.renderables
         let sounds = outputs.playables
         let world = outputs.world
+        
+        #if BENCH
         let updateTime = DispatchTime.now()
         print("world update finished in \((updateTime.uptimeNanoseconds - inputTime.uptimeNanoseconds)/1000) μs")
+        #endif
         
         renderSystem.doRender(objects: renderables)
         audioSystem.doPlaySounds(sounds: sounds)
+        
+        #if BENCH
         let outputTime = DispatchTime.now()
         print("render and audio work finished in \((outputTime.uptimeNanoseconds - updateTime.uptimeNanoseconds)/1000) μs" )
         
         let end = DispatchTime.now()
         print("loop finished in \((end.uptimeNanoseconds - start.uptimeNanoseconds)/1000) μs")
+        #endif
         
         return world
     }

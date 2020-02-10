@@ -139,6 +139,7 @@ protocol RenderSystem {
 class ConsoleRenderSystem: RenderSystem {
     
     let renderer = ConsoleRenderer()
+    let renderQueue = DispatchQueue.global(qos: .utility)
     
     func render(instructions ii: [RenderInstruction]) -> [Character] {
         let blank = [Character](repeating: " ", count: 64)
@@ -154,8 +155,10 @@ class ConsoleRenderSystem: RenderSystem {
     }
     
     func doRender(objects oo: [Renderable]) {
-        let output = render(instructions: convertToRenderCode(objects: oo))
-        print(String(output))
+        renderQueue.async { [unowned self] in
+            let output = self.render(instructions: self.convertToRenderCode(objects: oo))
+            print(String(output))
+        }
     }
     
 }
