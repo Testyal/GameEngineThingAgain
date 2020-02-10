@@ -38,6 +38,7 @@
 		282556F023D9C60000C0335C /* Audio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282556EE23D9C5FE00C0335C /* Audio.swift */; };
 		282556F223D9C64000C0335C /* Input.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282556F123D9C64000C0335C /* Input.swift */; };
 		282556F323D9C64400C0335C /* Input.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282556F123D9C64000C0335C /* Input.swift */; };
+		2842DA9B23E8834500331842 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 2842DA9A23E8834500331842 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -160,6 +161,8 @@
 		282556EB23D9C57A00C0335C /* Render.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Render.swift; sourceTree = "<group>"; };
 		282556EE23D9C5FE00C0335C /* Audio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Audio.swift; sourceTree = "<group>"; };
 		282556F123D9C64000C0335C /* Input.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Input.swift; sourceTree = "<group>"; };
+		2842DA9923E86A1C00331842 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		2842DA9A23E8834500331842 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -271,6 +274,7 @@
 		2824B90823D08CA200C861C4 = {
 			isa = PBXGroup;
 			children = (
+				2842DA9A23E8834500331842 /* README.md */,
 				2824B97423D2032900C861C4 /* njdskms.playground */,
 				2824B91323D08CA200C861C4 /* GameEngine */,
 				2824B92823D08CA300C861C4 /* GameEngineTests */,
@@ -337,12 +341,12 @@
 		2824B94223D08FAD00C861C4 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				2842DA9823E86A0400331842 /* Input */,
 				2824B94323D08FC600C861C4 /* CountdownTimer.swift */,
 				2824B94923D2002200C861C4 /* Battle.swift */,
 				281BDA6B23D86255007E25E0 /* Engine.swift */,
 				282556EB23D9C57A00C0335C /* Render.swift */,
 				282556EE23D9C5FE00C0335C /* Audio.swift */,
-				282556F123D9C64000C0335C /* Input.swift */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -363,6 +367,15 @@
 				2824B96523D2011300C861C4 /* Info.plist */,
 			);
 			path = BattleFrameworkTests;
+			sourceTree = "<group>";
+		};
+		2842DA9823E86A0400331842 /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				282556F123D9C64000C0335C /* Input.swift */,
+				2842DA9923E86A1C00331842 /* README.md */,
+			);
+			path = Input;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -620,6 +633,7 @@
 			files = (
 				2824B91F23D08CA300C861C4 /* LaunchScreen.storyboard in Resources */,
 				2824B91C23D08CA300C861C4 /* Assets.xcassets in Resources */,
+				2842DA9B23E8834500331842 /* README.md in Resources */,
 				2824B91A23D08CA200C861C4 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
