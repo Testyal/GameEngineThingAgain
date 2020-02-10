@@ -30,14 +30,14 @@ enum Input: CustomStringConvertible {
 
 
 protocol InputProvider {
-    func askInput() -> Input?
+    func askInput() -> [Input]
 }
 
 
 class EmptyInputProvider: InputProvider {
     
-    func askInput() -> Input? {
-        return nil
+    func askInput() -> [Input] {
+        return []
     }
     
 }
@@ -45,14 +45,14 @@ class EmptyInputProvider: InputProvider {
 
 class RandomInputProvider: InputProvider {
     
-    func askInput() -> Input? {
+    func askInput() -> [Input]{
         switch Int.random(in: 0...5) {
-        case 1: return .KEY_LEFT
-        case 2: return .KEY_RIGHT
-        case 3: return .KEY_F
-        case 4: return .KEY_R
-        case 5: return .KEY_T
-        default: return nil
+        case 1: return [.KEY_LEFT]
+        case 2: return [.KEY_RIGHT]
+        case 3: return [.KEY_F]
+        case 4: return [.KEY_R]
+        case 5: return [.KEY_T]
+        default: return []
         }
     }
     
@@ -61,7 +61,7 @@ class RandomInputProvider: InputProvider {
 
 class InputLoop {
     
-    private var inputBuffer: [Input]
+    private var inputBuffer: [[Input]]
     let inputProvider: InputProvider
     let timer: DispatchSourceTimer
     
@@ -93,20 +93,15 @@ class InputLoop {
         timer.schedule(deadline: .now(), repeating: .milliseconds(10), leeway: .milliseconds(1))
     }
     
-    func loop(_ buffer: [Input]) -> [Input] {
-        // TODO: Null-coalescing operator
-        if let i = inputProvider.askInput() {
-            return buffer + [i]
-        } else {
-            return buffer
-        }
+    func loop(_ buffer: [[Input]]) -> [[Input]] {
+        return buffer + [inputProvider.askInput()]
     }
     
     func doBeginLoop() {
         timer.resume()
     }
     
-    func requestInputBuffer(_ handler: @escaping ([Input]) -> Void) {
+    func requestInputBuffer(_ handler: @escaping ([[Input]]) -> Void) {
         DispatchQueue.global(qos: .default).async { [unowned self] in
             self.dsema.wait()
             print("doing requested work with the input buffer")
@@ -117,7 +112,7 @@ class InputLoop {
         }
     }
     
-    func requestInputBuffer() -> [Input] {
+    func requestInputBuffer() -> [[Input]] {
         dsema.wait()
         let buffer = inputBuffer
         self.inputBuffer = []
@@ -137,11 +132,11 @@ class InputSystem {
         inputLoop = InputLoop(inputProvider: RandomInputProvider(), inputFrameTime: .milliseconds(5))
     }
     
-    func requestInputBuffer(_ handler: @escaping ([Input]) -> Void) {
+    func requestInputBuffer(_ handler: @escaping ([[Input]]) -> Void) {
         inputLoop.requestInputBuffer(handler)
     }
     
-    func requestInputBuffer() -> [Input] {
+    func requestInputBuffer() -> [[Input]] {
         return inputLoop.requestInputBuffer()
     }
     

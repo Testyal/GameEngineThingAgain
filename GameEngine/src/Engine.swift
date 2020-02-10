@@ -35,7 +35,7 @@ public class World {
 
 
 protocol LogicSystem {
-    func update(dt deltaTime: Double, input: [Input], world frameData: World) -> (renderables: [Renderable], playables: [Playable], world: World)
+    func update(dt deltaTime: Double, input: [[Input]], world frameData: World) -> (renderables: [Renderable], playables: [Playable], world: World)
 }
 
 class DefaultLogicSystem: LogicSystem {
@@ -48,9 +48,9 @@ class DefaultLogicSystem: LogicSystem {
         }
     }
     
-    func update(dt deltaTime: Double, input: [Input], world: World) -> (renderables: [Renderable], playables: [Playable], world: World) {
-        let arrowKeys = input.filter { [Input.KEY_LEFT, Input.KEY_RIGHT].contains($0) }
-        let faceKeys = input.filter { [Input.KEY_T, Input.KEY_F, Input.KEY_R].contains($0) }
+    func update(dt deltaTime: Double, input: [[Input]], world: World) -> (renderables: [Renderable], playables: [Playable], world: World) {
+        let arrowKeys = input.flatMap { $0.filter { [Input.KEY_LEFT, Input.KEY_RIGHT].contains($0) } }
+        let faceKeys = input.flatMap { $0.filter { [Input.KEY_R, Input.KEY_F, Input.KEY_T].contains($0) } }
         
         let dx = arrowKeys.reduce(0) { $0 + deltaPostion(from: $1) }
         
@@ -75,9 +75,9 @@ class DefaultLogicSystem: LogicSystem {
         let newActorPostion = clamp(world.actorPosition + dx, min: 0, max: 63)
         let newWorld = World(newActorPostion, face: newActorFace)
         
-        let rs: [Renderable] = [BackgroundRenderObject(" "),
-                                TextRenderObject(newActorFace, at: newActorPostion)]
-                         //       TextLineRenderObject("\(input.description): dx = \(dx)")]
+        let rs: [Renderable] = [BackgroundRenderObject("."),
+                                TextRenderObject(newActorFace, at: newActorPostion),
+                                TextLineRenderObject("\(input.description): dx = \(dx)")]
         
         return (renderables: rs, playables: [], world: newWorld)
     }
