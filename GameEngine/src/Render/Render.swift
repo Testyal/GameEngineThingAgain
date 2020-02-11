@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Pipes
 
 // RENDER /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -156,7 +157,7 @@ class ConsoleRenderSystem: RenderSystem {
     
     func doRender(objects oo: [Renderable]) {
         renderQueue.async { [unowned self] in
-            let output = self.render(instructions: self.convertToRenderCode(objects: oo))
+            let output = self.render <| self.convertToRenderCode <| oo
             print(String(output))
         }
     }
