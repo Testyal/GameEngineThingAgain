@@ -11,6 +11,7 @@ import Foundation
 // INPUT //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 enum Input: CustomStringConvertible {
+    
     case KEY_F
     case KEY_R
     case KEY_T
@@ -26,6 +27,7 @@ enum Input: CustomStringConvertible {
         case .KEY_RIGHT: return "➡️"
         }
     }
+    
 }
 
 
