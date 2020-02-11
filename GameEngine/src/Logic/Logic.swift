@@ -57,7 +57,7 @@ class DefaultLogicSystem: LogicSystem {
         }
         
         let actorFaces = [Input.KEY_T: "🤔", Input.KEY_R: "😡", Input.KEY_F: "😳"]
-        let newActorFace: String = ({ actorFaces[$0]! } <|? faceKeys.last) ?? world.actorFace
+        let newActorFace: String = (faceKeys.last |> { actorFaces[$0]! }) ?? world.actorFace
         
         let newActorPostion = clamp(world.actorPosition + dx, min: 0, max: 63)
         let newWorld = World(actorPosition: newActorPostion, actorFace: newActorFace, frame: world.frame + 1)

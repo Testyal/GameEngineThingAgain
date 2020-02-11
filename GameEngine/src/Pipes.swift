@@ -21,9 +21,7 @@ public func |><T,U>(value: T, function: (T) -> U) -> U {
     return function(value)
 }
 
-infix operator |>? : ForwardPipe
-
-public func |>?<T,U>(value: T?, function: (T) -> U) -> U? {
+public func |><T,U>(value: T?, function: (T) -> U) -> U? {
     if let v = value {
         return function(v)
     } else {
@@ -43,10 +41,7 @@ public func <|<T,U>(function: (T) -> U, value: T) -> U {
     return function(value)
 }
 
-
-infix operator <|? : BackwardPipe
-
-public func <|?<T,U>(function: (T) -> U, value: T?) -> U? {
+public func <|<T,U>(function: (T) -> U, value: T?) -> U? {
     if let v = value {
         return function(v)
     } else {
