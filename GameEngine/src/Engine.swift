@@ -101,8 +101,6 @@ public class Engine {
                 self.world = self.doLoop(0.5, self.world)
             }
             timer.schedule(deadline: .now(), repeating: .milliseconds(50), leeway: .milliseconds(1))
-
-            //timer.suspend()
         }
         
         func doBeginLoop() {
@@ -133,16 +131,16 @@ public class Engine {
     }
     
     func loopInternal(d: Double, w: World) -> World {
-        #if BENCH
+#if BENCH
         let start = DispatchTime.now()
-        #endif
+#endif
         
         let inputs = inputSystem.requestInputBuffer()
         
-        #if BENCH
+#if BENCH
         let inputTime = DispatchTime.now()
         print("input retrieval finished in \((inputTime.uptimeNanoseconds - start.uptimeNanoseconds)/1000) μs")
-        #endif
+#endif
         
         //print(inputs)
         let outputs = logicSystem.update(dt: d, input: inputs, world: w)
@@ -150,21 +148,19 @@ public class Engine {
         let sounds = outputs.playables
         let world = outputs.world
         
-        #if BENCH
+#if BENCH
         let updateTime = DispatchTime.now()
         print("world update finished in \((updateTime.uptimeNanoseconds - inputTime.uptimeNanoseconds)/1000) μs")
-        #endif
+#endif
         
         renderSystem.doRender(objects: renderables)
         audioSystem.doPlaySounds(sounds: sounds)
         
-        #if BENCH
-        let outputTime = DispatchTime.now()
-        print("render and audio work finished in \((outputTime.uptimeNanoseconds - updateTime.uptimeNanoseconds)/1000) μs" )
-        
+#if BENCH
         let end = DispatchTime.now()
+        print("render and audio work finished in \((end.uptimeNanoseconds - updateTime.uptimeNanoseconds)/1000) μs" )
         print("loop finished in \((end.uptimeNanoseconds - start.uptimeNanoseconds)/1000) μs")
-        #endif
+#endif
         
         return world
     }
