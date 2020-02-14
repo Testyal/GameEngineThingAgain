@@ -13,3 +13,15 @@ The engine is currently composed of a small number of independent systems, and a
 *(Figure: diagram of skeleton architecture)*
 
 The LogicSystem must be pure (in the sense of a [pure function](https://en.wikipedia.org/wiki/Pure_function). All other systems mentioned are supposed to be the endpoints of the architecture, and are allowed to be a little bit naughty. It's worth noting that (almost?) every function which performs an action liking printing to the screen or (in the future) playing audio is prefixed with "do", such as in `RenderSystem.doRender`. No method is allowed to mutate variables outside of its scope.
+
+## Performance
+
+By its functional nature, any method intended to update an object should return a new object (rather than mutating it in place). This introduces a performance issue, one which is explicitly noted in the [Swift docs](https://github.com/apple/swift/blob/master/docs/OptimizationTips.rst#advice-use-inplace-mutation-instead-of-object-reassignment). Namely, the following code will produce a deep copy of `a`, despite `a` not being used again.
+```
+let a: [Int] = [1,2,3]
+let b = a + [4]
+print(b)
+```
+The faster way to do this would be to set `a` as a `var` and modify it in place.
+
+Since this is more of a project in architecting something which looks kind of nice (as opposed to being performant), keeping with the original plan of reassigning things will be fine for now. After a good-looking architecture is available, rewriting things with performance in mind will be a priority. There could be a potential rewrite in another language, especially considering the author only chose Swift because the syntax makes him happy 😊
