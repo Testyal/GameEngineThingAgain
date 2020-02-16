@@ -21,6 +21,7 @@ public func |><T,U>(value: T, function: (T) -> U) -> U {
     return function(value)
 }
 
+/// i want documentation for operators pls
 public func |><T,U>(value: T?, function: (T) -> U) -> U? {
     if let v = value {
         return function(v)

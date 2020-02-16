@@ -11,6 +11,8 @@
 		2812356A23F29AF000E6D988 /* libPipes.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2812356023F29A5600E6D988 /* libPipes.dylib */; };
 		2812356E23F2AF1000E6D988 /* Logic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2812356C23F2AEE200E6D988 /* Logic.swift */; };
 		2812356F23F2B7DB00E6D988 /* libPipes.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2812356023F29A5600E6D988 /* libPipes.dylib */; };
+		2812357223F431E200E6D988 /* Bench.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2812357023F4313D00E6D988 /* Bench.swift */; };
+		2812357523F8812A00E6D988 /* Math.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2812357323F880F400E6D988 /* Math.swift */; };
 		281BDA6C23D86255007E25E0 /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281BDA6B23D86255007E25E0 /* Engine.swift */; };
 		281BDA7B23D86996007E25E0 /* Engine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 281BDA7223D86996007E25E0 /* Engine.framework */; };
 		281BDA8223D86996007E25E0 /* EngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281BDA8123D86996007E25E0 /* EngineTests.swift */; };
@@ -133,6 +135,8 @@
 		2812355A23F29A0600E6D988 /* Pipes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Pipes.swift; path = GameEngine/src/Pipes.swift; sourceTree = SOURCE_ROOT; };
 		2812356023F29A5600E6D988 /* libPipes.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPipes.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		2812356C23F2AEE200E6D988 /* Logic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logic.swift; sourceTree = "<group>"; };
+		2812357023F4313D00E6D988 /* Bench.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Bench.swift; path = GameEngine/src/Bench.swift; sourceTree = SOURCE_ROOT; };
+		2812357323F880F400E6D988 /* Math.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Math.swift; path = GameEngine/src/Math.swift; sourceTree = SOURCE_ROOT; };
 		281BDA6B23D86255007E25E0 /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
 		281BDA7223D86996007E25E0 /* Engine.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Engine.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		281BDA7423D86996007E25E0 /* Engine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
@@ -376,11 +380,13 @@
 		2824B94223D08FAD00C861C4 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				2812357323F880F400E6D988 /* Math.swift */,
 				2812356B23F2AED100E6D988 /* Logic */,
 				2812355A23F29A0600E6D988 /* Pipes.swift */,
 				2842DA9823E86A0400331842 /* Input */,
 				2824B94323D08FC600C861C4 /* CountdownTimer.swift */,
 				2824B94923D2002200C861C4 /* Battle.swift */,
+				2812357023F4313D00E6D988 /* Bench.swift */,
 				281BDA6B23D86255007E25E0 /* Engine.swift */,
 				2812355823F15D9200E6D988 /* Render */,
 				282556EE23D9C5FE00C0335C /* Audio.swift */,
@@ -746,8 +752,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2812357223F431E200E6D988 /* Bench.swift in Sources */,
 				282556F023D9C60000C0335C /* Audio.swift in Sources */,
 				2812356E23F2AF1000E6D988 /* Logic.swift in Sources */,
+				2812357523F8812A00E6D988 /* Math.swift in Sources */,
 				281BDA8F23D86999007E25E0 /* Engine.swift in Sources */,
 				282556F323D9C64400C0335C /* Input.swift in Sources */,
 				282556ED23D9C5DD00C0335C /* Render.swift in Sources */,
