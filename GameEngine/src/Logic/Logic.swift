@@ -13,25 +13,32 @@ import Pipes
 
 public class World {
     
-    let actor: Actor
+    let player: Actor
+    let enemy: Enemy
     let frame: Int
     
     public init() {
-        self.actor = Actor()
+        self.player = Actor()
+        self.enemy = Enemy()
         self.frame = 0
     }
     
-    public init(actor a: Actor, frame fr: Int) {
-        self.actor = a
+    public init(player p: Actor, enemy e: Enemy, frame fr: Int) {
+        self.player = p
+        self.enemy = e
         self.frame = fr
     }
     
-    func actor(_ a: Actor) -> World {
-        return World(actor: a, frame: self.frame)
+    func player(_ p: Actor) -> World {
+        return World(player: p, enemy: self.enemy, frame: self.frame)
+    }
+    
+    func enemy(_ e: Enemy) -> World {
+        return World(player: self.player, enemy: e, frame: self.frame)
     }
     
     func nextFrame() -> World {
-        return World(actor: self.actor, frame: self.frame + 1)
+        return World(player: self.player, enemy: self.enemy, frame: self.frame + 1)
     }
     
 }
@@ -47,21 +54,30 @@ class DefaultLogicSystem: LogicSystem {
     
     func update(dt deltaTime: Double, input: [[Input]], world: World) -> (renderables: [Renderable], playables: [Playable], world: World) {
         let (dx, newFace) = inputParser.parse(input)
-        let face = newFace ?? world.actor.face
+        let face = newFace ?? world.player.sprite
     
-        let actor = world.actor
+        let player = world.player
             .moved(dx)
-            .face(face)
+            .sprite(face)
             |> { $0.position(clamp($0.position, min: 0, max: 63)) }
         
+        let enemy = world.enemy
+            .movedForward()
+            |> { (e: Enemy) -> Enemy in
+                if e.position == 0 || e.position == 63 { return e.turned() }
+                return e
+            }
+        
         let world = world
-            .actor(actor)
+            .player(player)
+            .enemy(enemy)
             .nextFrame()
         
         let rs: [Renderable] = [BackgroundRenderObject("."),
-                                actor.asRenderObject(),
+                                player.asRenderObject(),
+                                enemy.asRenderObject(),
                                 TextLineRenderObject("\(input.description): dx = \(dx)"),
-                                TextLineRenderObject("Frame: \(world.frame + 1)")]
+                                TextLineRenderObject("Frame: \(world.frame)")]
         
         return (renderables: rs, playables: [], world: world)
     }
@@ -94,36 +110,99 @@ class InputParser {
 }
 
 
+protocol CharacterAsTextRenderObject {
+    var sprite: Character { get }
+    var position: Int { get }
+}
+
+extension CharacterAsTextRenderObject {
+    func asRenderObject() -> TextRenderObject {
+        return TextRenderObject(String(sprite), at: position)
+    }
+}
+
+
+protocol Movable {
+    associatedtype Moved
+    var position: Int { get }
+    func position(_ x: Int) -> Moved
+}
+
+extension Movable {
+    func moved(_ dx: Int) -> Moved {
+        return position(position + dx)
+    }
+}
+
 // TODO: Automatically deriving a builder pattern such as in https://github.com/colin-kiegel/rust-derive-builder would be wonderful
-public class Actor {
+public class Actor: Movable, CharacterAsTextRenderObject {
     
-    let face: Character
+    let sprite: Character
     let position: Int
     
     init() {
         self.position = 0
-        self.face = "😐"
+        self.sprite = "😐"
     }
     
     init(position x: Int, face f: Character) {
         self.position = x
-        self.face = f
+        self.sprite = f
     }
     
-    func face(_ f: Character) -> Actor {
+    func sprite(_ f: Character) -> Actor {
         return Actor(position: self.position, face: f)
     }
     
     func position(_ x: Int) -> Actor {
-        return Actor(position: x, face: self.face)
+        return Actor(position: x, face: self.sprite)
     }
     
-    func moved(_ dx: Int) -> Actor {
-        return position(self.position + dx)
+}
+
+
+enum Facing {
+    case left
+    case right
+    
+    func flipped() -> Facing {
+        return self == .left ? .right : .left
+    }
+}
+
+protocol FacedMovable: Movable {
+    var facing: Facing { get }
+}
+
+extension FacedMovable {
+    func movedForward() -> Moved {
+        return moved(facing == .right ? +1 : -1)
+    }
+}
+
+public class Enemy: FacedMovable, CharacterAsTextRenderObject {
+    
+    let position: Int
+    let facing: Facing
+    
+    let sprite: Character = "😈"
+    
+    init() {
+        self.position = 60
+        self.facing = .left
     }
     
-    func asRenderObject() -> TextRenderObject {
-        return TextRenderObject(String(self.face), at: self.position)
+    init(position x: Int, facing f: Facing) {
+        self.position = x
+        self.facing = f
+    }
+    
+    func position(_ x: Int) -> Enemy {
+        return Enemy(position: x, facing: self.facing)
+    }
+    
+    func turned() -> Enemy {
+        return Enemy(position: self.position, facing: self.facing.flipped())
     }
     
 }
