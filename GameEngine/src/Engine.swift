@@ -44,7 +44,7 @@ public class Engine {
     }
     
     let inputSystem: InputSystem
-    let logicSystem: LogicSystem
+    let logicSystem: DefaultLogicSystem
     let renderSystem: RenderSystem
     let audioSystem: AudioSystem
     var gameLoop: GameLoop?

@@ -13,7 +13,7 @@ import Pipes
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 let engine = Engine()
-engine.doStartGame(initialWorld: World())
+engine.doStartGame(initialWorld: World([Actor(), Enemy()]))
 
 // Gross hack please fix :(
 while true {}
