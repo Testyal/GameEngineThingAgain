@@ -13,39 +13,45 @@ import Pipes
 
 typealias Message = (World) -> World
 
-public struct World {
+public class World {
     
-    let registry: [Entity]
+    let registry: [UUID: Entity]
     
-    public init(_ registry: [Entity]) {
+    public init(_ registry: [UUID: Entity]) {
         self.registry = registry
     }
     
-    func spawn(entity e: Entity) -> World {
-        (self.registry + [e])
-            .sorted { $0.hash < $1.hash }
-            |> { World($0) }
+    public func spawn(entity e: Entity) -> World {
+        //print(e.uuid)
+        return self.registry.merging([e.uuid: e]) { (e1, e2) in e1 } |> { World($0) }
     }
     
-    func search(_ name: String) -> Entity? {
-        registry.first { $0.hash == name.hashValue }
+    func search(_ uuid: UUID) -> Entity? {
+        registry[uuid]
     }
     
-    func kill(_ name: String) -> World {
-        self.registry.compactMap { $0.name == name ? nil : $0 } |> { World($0) }
+    func kill(_ uuid: UUID) -> World {
+        var reg = registry
+        reg.removeValue(forKey: uuid)
+        
+        return World(reg)
+    }
+    
+    func kill(_ entity: Entity) -> World {
+        return kill(entity.uuid)
     }
     
     func map<T>(_ function: (T) -> (Entity, message: Message?)) -> (World, messages: [Message]) {
-        var newRegistry: [Entity] = []
-        var messages: [(World) -> World] = []
+        var newRegistry: [UUID: Entity] = [:]
+        var messages: [Message] = []
         
-        for entity in self.registry {
+        for entity in self.registry.values {
             if let obj = entity as? T {
                 let (newEntity, message) = function(obj)
-                newRegistry.append(newEntity)
+                newRegistry.merge([newEntity.uuid: newEntity]) { (e1, e2) in e1 }
                 if let msg = message { messages.append(msg) }
             } else {
-                newRegistry.append(entity)
+                newRegistry.merge([entity.uuid: entity]) { (e1, e2) in e1 }
             }
         }
         
@@ -53,7 +59,7 @@ public struct World {
     }
     
     func retain<T>() -> [T] {
-        return self.registry.compactMap { $0 as? T }
+        return registry.compactMap { (key, value) in value as? T }
     }
     
 }
@@ -63,15 +69,14 @@ protocol LogicSystem {
     func update(dt deltaTime: Double, input: [[Input]], world: World) -> (renderables: [Renderable], playables: [Playable], world: World)
 }
 
-class DefaultLogicSystem {
+class DefaultLogicSystem: LogicSystem {
 
     let inputParser = InputParser()
         
     func update(dt deltaTime: Double, input: [[Input]], world: World) -> (renderables: [Renderable], playables: [Playable], world: World) {
         var worlde: World = world
-                
-        let (dx, newFace) = inputParser.parse(input)
-        let face = newFace ?? "😼"
+                        
+        let (dx, face) = inputParser.parse(input)
         
         worlde = worlde
             .map { (agent: Agent) in
@@ -80,6 +85,8 @@ class DefaultLogicSystem {
             |> { (agentWorldE, agentMessages) in
                 agentMessages.reduce(agentWorldE) { world, message in message(world) }
             }
+        
+        //print(worlde.registry)
     
         worlde = worlde
             .map { (patient: Patient) in
@@ -94,7 +101,7 @@ class DefaultLogicSystem {
         
         let rs: [Renderable] = [BackgroundRenderObject(".")]
             + renderables
-            + [TextLineRenderObject("\(input.description): dx = \(dx)")]
+       //     + [TextLineRenderObject("\(input.description): dx = \(dx)")]
         
         return (renderables: rs, playables: [], world: worlde)
     }

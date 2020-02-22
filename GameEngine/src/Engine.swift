@@ -48,6 +48,9 @@ public class Engine {
     let renderSystem: RenderSystem
     let audioSystem: AudioSystem
     var gameLoop: GameLoop?
+#if BENCH
+    var benchmarks: [UInt64] = []
+#endif
     
     public init() {
         inputSystem = InputSystem()
@@ -87,6 +90,7 @@ public class Engine {
         let end = DispatchTime.now()
         print("render and audio work finished in \((end.uptimeNanoseconds - updateTime.uptimeNanoseconds)/1000) μs" )
         print("loop finished in \((end.uptimeNanoseconds - start.uptimeNanoseconds)/1000) μs")
+        benchmarks.append((end.uptimeNanoseconds - start.uptimeNanoseconds)/1000)
 #endif
         
         return world

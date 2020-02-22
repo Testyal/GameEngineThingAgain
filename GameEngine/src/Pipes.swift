@@ -30,6 +30,19 @@ public func |><T,U>(value: T?, function: (T) -> U) -> U? {
     }
 }
 
+infix operator >>> : ForwardPipe
+
+public func >>><T,U,V>(f: @escaping (T) -> U, g: @escaping (U) -> V) -> ((T) -> V) {
+    return { g(f($0)) }
+}
+
+public func >>><T>(f: ((T) -> T)?, g: ((T) -> T)?) -> ((T) -> T)? {
+    if f == nil && g == nil { return nil }
+    if f == nil && g != nil { return g! }
+    if f != nil && g == nil { return f! }
+    return { g!(f!($0)) }
+}
+
 
 precedencegroup BackwardPipe {
     higherThan: AssignmentPrecedence

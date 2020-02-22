@@ -92,7 +92,7 @@ class InputLoop {
             self.inputBuffer = self.loop(self.inputBuffer)
             self.dsema.signal()
         }
-        timer.schedule(deadline: .now(), repeating: .milliseconds(10), leeway: .milliseconds(1))
+        timer.schedule(deadline: .now(), repeating: .milliseconds(40), leeway: .milliseconds(1))
     }
     
     func loop(_ buffer: [[Input]]) -> [[Input]] {
@@ -131,7 +131,7 @@ class InputSystem {
     let inputLoop: InputLoop
     
     init() {
-        inputLoop = InputLoop(inputProvider: RandomInputProvider(), inputFrameTime: .milliseconds(5))
+        inputLoop = InputLoop(inputProvider: RandomInputProvider(), inputFrameTime: .milliseconds(10))
     }
     
     func requestInputBuffer(_ handler: @escaping ([[Input]]) -> Void) {
