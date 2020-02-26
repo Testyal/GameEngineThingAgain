@@ -305,4 +305,192 @@ struct SmokeTrail: Entity, AnimatedSprite {
     
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// EXPERIMENTAL ENTITY TREE SYSTEM ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+public struct NewMessage {
+    
+    enum SendingMode {
+        case own
+        case parent
+        case deep
+    }
+    
+    enum InappropriateSendingModeError: Error {
+        case appendee
+        case appender
+    }
+    
+    let sendingMode: SendingMode
+    let contents: (Node) -> Node
+    
+    func append(_ nextMessage: NewMessage) throws -> NewMessage {
+        guard self.sendingMode == .deep else { throw InappropriateSendingModeError.appendee }
+        guard nextMessage.sendingMode == .deep else { throw InappropriateSendingModeError.appender }
+        
+        return NewMessage(sendingMode: .deep, contents: self.contents >>> nextMessage.contents)
+    }
+    
+}
+
+
+public protocol NewPatient {
+    var id: UUID { get }
+    var description: String { get }
+    func update() -> (Self, [NewMessage])
+}
+
+
+public struct Node: Patient, Entity {
+    
+    let patient: NewPatient
+    let children: [Node]
+    
+    public let name = "Node"
+    var id: UUID { patient.id }
+    public var uuid: UUID { self.id }
+    
+    public init(patient: NewPatient, children: [Node]) {
+        self.patient = patient
+        self.children = children
+    }
+        
+    func kill(_ child: NewPatient) -> Node {
+        var updatingChildren = self.children
+        updatingChildren.removeAll { $0.id == child.id }
+        
+        return Node(patient: self.patient, children: updatingChildren)
+    }
+    
+    func spawn(_ child: NewPatient) -> Node {
+        let childNode = Node(patient: child, children: [])
+        
+        return Node(patient: self.patient, children: self.children + [childNode])
+    }
+    
+    func attach(_ childNode: Node) -> Node {
+        return Node(patient: self.patient, children: self.children + [childNode])
+    }
+    
+    func update() -> (Node, [NewMessage]) {
+        let (updatedChildren, messages): ([Node], [NewMessage]) = children
+            .map { child in
+                let (updatedChild, childMessages): (Node, [NewMessage]) = child.update()
+                let messagesForChildNode = childMessages.filter { $0.sendingMode == .own }.map { $0.contents }
+                let otherMessages = childMessages.filter { $0.sendingMode != .own }
+                
+                return (messagesForChildNode.reduce(updatedChild) { (currentChild, message) in message(child) }, otherMessages)
+            }
+            |> { (childrenWithMessages: [(Node, [NewMessage])]) in
+                childrenWithMessages.reduce(([], [])) { (currentChildrenWithMessages, nextChildWithMessages) in
+                    let (currentChildren, currentMessages): ([Node], [NewMessage]) = currentChildrenWithMessages
+                    let (updatedChild, nextMessages): (Node, [NewMessage]) = nextChildWithMessages
+                    
+                    return (currentChildren + [updatedChild], currentMessages + nextMessages)
+                }
+            }
+        
+        let messagesForSelf = messages.filter { $0.sendingMode == .parent }.map { $0.contents }
+        let messagesForDeep = messages.filter { $0.sendingMode == .deep }
+        
+        let (updatedPatient, patientMessages) = patient.update()
+                
+        let updatedSelf = Node(patient: updatedPatient, children: updatedChildren)
+            |> { selfWithUpdatedChildren in
+                messagesForSelf.reduce(selfWithUpdatedChildren) { (currentSelf, message) in
+                    return message(currentSelf)
+                }
+            }
+    
+        return (updatedSelf, patientMessages + messagesForDeep)
+    }
+    
+    func update() -> (Self, message: Message?) {
+        let mainUpdate: (Node, [NewMessage]) = self.update()
+        
+        return (mainUpdate.0, nil)
+    }
+    
+}
+
+
+public struct EmptyPatient: NewPatient {
+    
+    public let id: UUID
+    
+    public var description: String { "Empty" }
+    
+    public init(id: UUID) {
+        self.id = id
+    }
+    
+    public func update() -> (EmptyPatient, [NewMessage]) {
+        return (self, [])
+    }
+    
+}
+
+public struct Printer: NewPatient {
+    
+    public let id: UUID
+    public var description: String { "Printer for entity tree" }
+    
+    public init(id: UUID) {
+        self.id = id
+    }
+    
+    func printTree(head node: Node, depth: Int = 0) {
+        print(String(repeating: " ", count: depth) + node.patient.description)
+        node.children.forEach { printTree(head: $0, depth: depth + 1) }
+    }
+    
+    public func update() -> (Printer, [NewMessage]) {
+        return (self, [NewMessage(sendingMode: .parent) { self.printTree(head: $0); return $0 }])
+    }
+    
+}
+
+
+struct NewSmokeTrail: NewPatient {
+    
+    let id: UUID
+    let frame: Int
+    
+    var description: String { "Smoke trail on frame \(self.frame) with sprite \(self.sprites[self.frame])" }
+    
+    let sprites = [Character]("bullet")
+    
+    func update() -> (NewSmokeTrail, [NewMessage]) {
+        if self.frame + 1 >= sprites.count { return (self, [NewMessage(sendingMode: .parent) { $0.kill(self) }]) }
+        
+        return (NewSmokeTrail(id: self.id, frame: self.frame + 1), [])
+    }
+    
+}
+
+
+public struct NewBullet: NewPatient {
+    
+    public let id: UUID
+    
+    let position: Int
+    
+    public var description: String { "Bullet at \(self.position)" }
+    
+    public init(id: UUID, position: Int) {
+        self.id = UUID()
+        self.position = position
+    }
+    
+    public func update() -> (Self, [NewMessage]) {
+        let updatedSelf = NewBullet(id: self.id, position: self.position + 1)
+        
+        if Int.random(in: 0...4) == 4 {
+            let spawnSmokeTrailMessage = NewMessage(sendingMode: .own) { $0.spawn(NewSmokeTrail(id: UUID(), frame: 0)) }
+            
+            return (updatedSelf, [spawnSmokeTrailMessage])
+        }
+        
+        return (updatedSelf, [])
+    }
+    
+}

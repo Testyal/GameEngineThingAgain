@@ -14,9 +14,10 @@ import Pipes
 
 let engine = Engine()
 
-let world = World([:])
-    .spawn(entity: Actor.new(sprite: "😐", position: 10))
-    .spawn(entity: Enemy.new(name: "Enemy", position: 30, facing: .right))
+let world = World([:]).spawn(entity: Node(patient: EmptyPatient(id: UUID()),
+                                          children: [ Node(patient: NewBullet(id: UUID(), position: 0), children: []),
+                                                      Node(patient: Printer(id: UUID()), children: [])
+                                                    ]))
 
 engine.doStartGame(initialWorld: world)
 
