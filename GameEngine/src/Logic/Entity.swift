@@ -11,34 +11,27 @@ import Pipes
 
 // PROTOCOLS //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-public class Entity {
-    
-    let name: String
-    let uuid: UUID
-    
-    init(name: String = "Untitled") {
-        self.uuid = UUID()
-        self.name = name
-    }
-    
+public protocol Entity {
+    var name: String { get }
+    var uuid: UUID { get }
 }
 
 
 protocol Patient: Entity {
-    func update() -> (Entity, message: Message?)
+    func update() -> (Self, message: Message?)
 }
 
 protocol Agent: Entity {
-    func update(dx: Int, face: Character?) -> (Entity, message: Message?)
+    func update(dx: Int, face: Character?) -> (Self, message: Message?)
 }
 
 
 protocol IndependentPatient: Patient {
-    func update() -> Entity
+    func update() -> Self
 }
 
 extension IndependentPatient {
-    func update() -> (Entity, message: Message?) {
+    func update() -> (Self, message: Message?) {
         return (update(), message: nil)
     }
 }
@@ -60,11 +53,11 @@ extension CharacterSprite {
 protocol AnimatedSprite: CharacterSprite, Patient {
     var sprites: [Character] { get }
     var frame: Int { get }
-    func nextFrame() -> AnimatedSprite
+    func nextFrame() -> Self
 }
 
 extension AnimatedSprite {
-    func update() -> (Entity, message: Message?) {
+    func update() -> (Self, message: Message?) {
         if frame == sprites.count - 1 { return (self, { $0.kill(self) }) }
         return (self.nextFrame(), nil)
     }
@@ -75,11 +68,11 @@ extension AnimatedSprite {
 
 protocol Movable: Entity {
     var position: Int { get }
-    func position(_ x: Int) -> Movable
+    func position(_ x: Int) -> Self
 }
 
 extension Movable {
-    func moved(_ dx: Int) -> Movable {
+    func moved(_ dx: Int) -> Self {
         return position(position + dx)
     }
 }
@@ -96,17 +89,25 @@ public enum Facing {
     var numeric: Int { self == .right ? +1 : -1 }
 }
 
+extension Int {
+    func asFacing(biasedToward bias: Facing = .right) -> Facing {
+        if self > 0 { return .right }
+        if self < 0 { return .left }
+        return bias
+    }
+}
+
 protocol Faced: Entity {
     var facing: Facing { get }
 }
 
 extension Faced where Self: Movable {
-    func movedForward() -> Movable {
-        return moved(facing == .right ? +1 : -1)
+    func movedForward(_ dx: Int) -> Self {
+        return moved(facing == .right ? +dx : -dx)
     }
     
-    func movedBackward() -> Movable {
-        return moved(facing == .right ? -1 : +1)
+    func movedBackward(_ dx: Int) -> Self {
+        return moved(facing == .right ? -dx : +dx)
     }
 }
 
@@ -114,38 +115,47 @@ extension Faced where Self: Movable {
 // ENTITIES ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // TODO: Automatically deriving a builder pattern such as in https://github.com/colin-kiegel/rust-derive-builder would be wonderful
-public class Actor: Entity, Movable, CharacterSprite, Agent {
+public struct Actor: Entity, Movable, CharacterSprite, Agent {
         
-    let sprite: Character
-    let position: Int
-        
-    public init(position x: Int = 10, face f: Character = "😐") {
-        self.position = x
-        self.sprite = f
-        
-        super.init()
+    public let sprite: Character
+    public let position: Int
+    
+    public let name: String
+    public let uuid: UUID
+    
+    public static func new(sprite: Character, position: Int) -> Actor {
+        return Actor(sprite: sprite,
+                     position: position,
+                     name: "Untitled Actor",
+                     uuid: UUID())
     }
     
-    func sprite(_ f: Character) -> Actor {
-        return Actor(position: self.position, face: f)
+    func sprite(_ sprite: Character) -> Self {
+        return Actor(sprite: sprite,
+                     position: self.position,
+                     name: self.name,
+                     uuid: self.uuid)
     }
     
-    func position(_ x: Int) -> Movable {
-        return Actor(position: x, face: self.sprite)
+    func position(_ position: Int) -> Self {
+        return Actor(sprite: self.sprite,
+                     position: position,
+                     name: self.name,
+                     uuid: self.uuid)
     }
         
-    func update(dx: Int, face: Character?) -> (Entity, message: ((World) -> World)?) {
+    func update(dx: Int, face: Character?) -> (Self, message: Message?) {
         let actor = self
             .moved(dx)
             |> { $0.position(clamp($0.position, min: 0, max: 63)) }
-            |> { $0 as! Actor }
             |> { $0.sprite(face ?? $0.sprite) }
         
-        if dx.magnitude >= 3 {
-            let bullet = Bullet(position: actor.position, facing: dx > 0 ? .right : .left)
-            //print(bullet.uuid)
+        if face == "😳" {
             let spawnMessage = { (world: World) -> World in
-                world.spawn(entity: bullet)
+                world.spawn(entity: Bullet(position: actor.position,
+                                           facing: dx.asFacing(),
+                                           name: "\(self.name)'s bullet",
+                                           uuid: UUID()))
             }
             
             return (actor, spawnMessage)
@@ -157,82 +167,93 @@ public class Actor: Entity, Movable, CharacterSprite, Agent {
 }
 
 
-public class Enemy: Entity, Faced, Movable, CharacterSprite, IndependentPatient {
+public struct Enemy: Entity, Faced, Movable, CharacterSprite, IndependentPatient {
     
     let position: Int
     let facing: Facing
     
+    public let name: String
+    public let uuid: UUID
+    
     let sprite: Character = "😈"
     
-    public init(position x: Int = 60, facing f: Facing = .left) {
-        self.position = x
-        self.facing = f
-        
-        super.init()
+    public static func new(name: String, position: Int, facing: Facing) -> Enemy {
+        return Enemy(position: position,
+                     facing: facing,
+                     name: name,
+                     uuid: UUID())
     }
     
-    func position(_ x: Int) -> Movable {
-        return Enemy(position: x, facing: self.facing)
+    func position(_ position: Int) -> Self {
+        return Enemy(position: position,
+                     facing: self.facing,
+                     name: self.name,
+                     uuid: self.uuid)
     }
     
-    func turned() -> Enemy {
-        return Enemy(position: self.position, facing: self.facing.flipped())
+    func turned() -> Self {
+        return Enemy(position: self.position,
+                     facing: self.facing.flipped(),
+                     name: self.name,
+                     uuid: self.uuid)
     }
     
-    func update() -> Entity {
-        self.movedForward() as! Enemy
-        |> { (enemy: Enemy) -> Entity in
-            if enemy.position == 63 || enemy.position == 0 { return enemy.turned() }
-            return enemy
-        }
+    func update() -> Self {
+        return self.movedForward(1)
+            |> { (enemy: Enemy) -> Self in
+                if enemy.position == 63 || enemy.position == 0 { return enemy.turned() }
+                return enemy
+            }
     }
     
 }
 
 
-public class Bullet: Entity, Faced, Movable, CharacterSprite, Agent {
+public struct Bullet: Entity, Faced, Movable, CharacterSprite, Agent {
     
     let position: Int
     let facing: Facing
     
+    public let name: String
+    public let uuid: UUID
+    
     var sprite: Character { facing == .right ? "👉" : "👈" }
     
-    init(position: Int, facing: Facing) {
-        self.position = position
-        self.facing = facing
-        
-        super.init()
-    }
-    
-    func position(_ x: Int) -> Movable {
-        return Bullet(position: x, facing: self.facing)
+    func position(_ position: Int) -> Self {
+        return Bullet(position: position,
+                      facing: self.facing,
+                      name: self.name,
+                      uuid: self.uuid)
     }
     
     func turned() -> Bullet {
-        return Bullet(position: self.position, facing: self.facing.flipped())
+        return Bullet(position: self.position,
+                      facing: self.facing.flipped(),
+                      name: self.name,
+                      uuid: self.uuid)
     }
     
-    func update() -> (Entity, message: Message?) {
-        self.movedForward() as! Bullet
-        |> { (bullet: Bullet) -> (Entity, Message?) in
-            if bullet.position == -1 || bullet.position == 64 {
-                return (bullet, { $0.kill(bullet) })
+    func update() -> (Self, message: Message?) {
+        return self
+            .movedForward(1)
+            |> { (bullet: Bullet) -> (Self, Message?) in
+                if bullet.position == -1 || bullet.position == 64 {
+                    return (bullet, { $0.kill(bullet) })
+                }
+                
+                return (bullet, nil)
             }
-            return (bullet, nil)
-        }
     }
     
-    func update(dx: Int, face: Character?) -> (Entity, message: Message?) {
-        let (entity, message): (Entity, Message?)
+    func update(dx: Int, face: Character?) -> (Self, message: Message?) {
+        let (bullet, message): (Self, Message?)
         switch face {
             /*
         case "😡": (entity, message) = (self, { (world: World) -> World in
-            if Int.random(in: 0...2) == 0 { return world.kill(self) }
+            if Int.random(in: 0...4) == 0 { return world.kill(self) }
             return world
         })
-            
-        case "🤔": (entity, message) = (self.movedForward(), nil)
-            */
+              
         case "😳": (entity, message) = (self, { (world: World) -> World in
             let player: Actor = world.retain()[0]
             let dx = self.position - player.position
@@ -244,39 +265,42 @@ public class Bullet: Entity, Faced, Movable, CharacterSprite, Agent {
             }
             
             return world
-        })
+        })*/
             
-        default: (entity, message) = (self.movedForward(), nil)
+        default: (bullet, message) = (self.movedForward(1), nil)
         }
-
-                
-        let bullet = entity as! Bullet
-        
-        let spawnSmokeTrail = { (world: World) -> World in world.spawn(entity: SmokeTrail(position: bullet.position - bullet.facing.numeric)) }
+                        
+        let spawnSmokeTrail = { (world: World) -> World in
+            world.spawn(entity: SmokeTrail(frame: -1,
+                                           position: self.position,
+                                           name: "\(self.name)'s SmokeTrail",
+                                           uuid: UUID()))
+        }
         
         if bullet.position == -1 || bullet.position == 64 {
-            return (entity, message >>> { $0.kill(entity) } >>> spawnSmokeTrail)
+            return (bullet, message >>> { $0.kill(bullet) } >>> spawnSmokeTrail)
         }
         
-        return (entity, message >>> spawnSmokeTrail)
+        return (bullet, message >>> spawnSmokeTrail)
     }
     
 }
 
 
-class SmokeTrail: Entity, AnimatedSprite {
+struct SmokeTrail: Entity, AnimatedSprite {
     
-    let sprites: [Character] = ["b", "u", "l", "l", "e", "t"]
+    let sprites: [Character] = ["~", "~"]
     let frame: Int
     let position: Int
     
-    init(frame: Int = -1, position: Int) {
-        self.frame = frame
-        self.position = position
-    }
+    public let name: String
+    public let uuid: UUID
     
-    func nextFrame() -> AnimatedSprite {
-        return SmokeTrail(frame: self.frame + 1, position: self.position)
+    func nextFrame() -> Self {
+        return SmokeTrail(frame: self.frame + 1,
+                          position: self.position,
+                          name: self.name,
+                          uuid: self.uuid)
     }
     
 }
